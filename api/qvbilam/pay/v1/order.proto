@@ -1,0 +1,59 @@
+syntax = "proto3";
+package userPb.v1;
+option go_package="pay/api/qvbilam/pay/v1;payV1";
+
+message CreateGoodsRequest {
+  string type = 1;
+  int64 id = 2;
+  string name = 3;
+  string icon = 4;
+  float price = 5;
+  int64 count = 6;
+}
+
+message CreateOrderRequest{
+  int64 userId = 1;
+  string goodsType = 2;
+  int64 goodsId = 3;
+  int64 count = 4;
+  int64 delivery_id = 5;
+  string pay_type = 6;
+  string client_type = 7;
+  string remark = 8;
+}
+
+message UpdateOrderRequest{
+  int64 id = 1;
+  string orderSn = 2;
+  string tradeNo = 3;
+  int64 deliveryId = 4;
+  string status = 5;
+  float payAmount = 6;
+  string remark = 7;
+  string payResult = 8;
+  int64 payTime = 9;
+}
+
+message OrderResponse {
+  int64 userID = 1;
+  string orderSn = 2;
+  string tradeNo = 3;
+  string payType = 4;
+  string clientType = 5;
+  float amount = 6;
+  string subject = 7;
+  string remark = 8;
+  string payResult =9;
+  int64 payTime = 10;
+}
+
+
+message PayNotifyResponse {
+  bool isSuccess = 1;
+  string message = 2;
+}
+
+service pay {
+  rpc CreateOrder (CreateOrderRequest) returns (OrderResponse);
+  rpc UpdateOrder (UpdateOrderRequest) returns (OrderResponse);
+}
