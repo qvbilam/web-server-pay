@@ -10,7 +10,6 @@ require (
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/namsral/flag v1.7.4-pre
-	github.com/sirupsen/logrus v1.4.2
 	github.com/smartwalle/alipay/v3 v3.1.8
 	github.com/spf13/viper v1.15.0
 	github.com/streadway/amqp v1.0.0
@@ -26,7 +25,6 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/konsorten/go-windows-terminal-sequences v1.0.1 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
