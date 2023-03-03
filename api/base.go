@@ -17,6 +17,7 @@ const responseFieldMessage = "msg"
 const responseFieldCode = "code"
 const responseFiledErrors = "errors"
 const responseFiledListTotal = "total"
+const responseFiledList = "list"
 
 // Success 成功
 func Success(ctx *gin.Context, data interface{}, message string) {
@@ -27,10 +28,10 @@ func Success(ctx *gin.Context, data interface{}, message string) {
 }
 
 func SuccessList(ctx *gin.Context, data interface{}, total int64) {
-	ctx.JSON(http.StatusOK, gin.H{
+	Success(ctx, gin.H{
 		responseFiledListTotal: total,
-		responseFieldData:      data,
-	})
+		responseFiledList:      data,
+	}, "")
 }
 
 func SuccessNotMessage(ctx *gin.Context, data interface{}) {
@@ -44,58 +45,53 @@ func SuccessNotContent(ctx *gin.Context) {
 
 // Error 错误
 func Error(ctx *gin.Context, message string) {
-	ErrorCustom(ctx, message, nil, -1)
+	ErrorCustom(ctx, http.StatusBadRequest, message)
 }
 
 // ErrorCustom 自定义错误
-func ErrorCustom(ctx *gin.Context, message string, errors interface{}, code int) {
-	ctx.JSON(http.StatusBadRequest, gin.H{
-		responseFieldCode:    code,
+func ErrorCustom(ctx *gin.Context, httpCode int, message string) {
+	ctx.JSON(httpCode, gin.H{responseFieldMessage: message})
+}
+
+// ErrorAlreadyExists 资源存在 302
+func ErrorAlreadyExists(ctx *gin.Context, data interface{}, message string) {
+	ctx.JSON(http.StatusFound, gin.H{
 		responseFieldMessage: message,
+		responseFieldData:    data,
+	})
+}
+
+// ErrorUnauthorized 未登陆或登陆信息失效 401
+func ErrorUnauthorized(ctx *gin.Context, message string) {
+	ErrorCustom(ctx, http.StatusUnauthorized, message)
+}
+
+// ErrorPayment 需要支付 402
+func ErrorPayment(ctx *gin.Context, message string) {
+	ErrorCustom(ctx, http.StatusPaymentRequired, message)
+}
+
+// ErrorForbidden 无权限 403
+func ErrorForbidden(ctx *gin.Context, message string) {
+	ErrorCustom(ctx, http.StatusForbidden, message)
+}
+
+// ErrorNotfound 没有找到 404
+func ErrorNotfound(ctx *gin.Context, message string) {
+	ErrorCustom(ctx, http.StatusNotFound, message)
+}
+
+// ErrorUnprocessableEntity 请求格式正确,有语义错误 422
+func ErrorUnprocessableEntity(ctx *gin.Context, errors interface{}) {
+	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+		responseFieldMessage: "参数错误",
 		responseFiledErrors:  errors,
 	})
 }
 
-// ErrorUnauthorized 未登陆或登陆信息失效
-func ErrorUnauthorized(ctx *gin.Context, message string) {
-	ctx.JSON(http.StatusUnauthorized, gin.H{
-		responseFieldMessage: message,
-	})
-}
-
-// ErrorForbidden 无权限
-func ErrorForbidden(ctx *gin.Context, message string) {
-	ctx.JSON(http.StatusForbidden, gin.H{
-		responseFieldMessage: message,
-	})
-}
-
-func ErrorAlreadyExists(ctx *gin.Context, message string) {
-	ctx.JSON(http.StatusFound, gin.H{
-		responseFieldMessage: message,
-	})
-}
-
-// ErrorNotfound 没有找到
-func ErrorNotfound(ctx *gin.Context, message string) {
-	ctx.JSON(http.StatusNotFound, gin.H{
-		responseFieldMessage: message,
-	})
-}
-
-// ErrorInternal 服务器错误
+// ErrorInternal 服务器错误 500
 func ErrorInternal(ctx *gin.Context, message string) {
-	ctx.JSON(http.StatusInternalServerError, gin.H{
-		responseFieldMessage: message,
-	})
-	return
-}
-
-// ErrorUnprocessableEntity 请求格式正确,有语义错误
-func ErrorUnprocessableEntity(ctx *gin.Context, errors interface{}) {
-	ctx.JSON(http.StatusBadRequest, gin.H{
-		responseFiledErrors: errors,
-	})
+	ErrorCustom(ctx, http.StatusInternalServerError, message)
 }
 
 // HandleGrpcErrorToHttp 处理 grpc 错误转换成 http 错误
@@ -107,6 +103,8 @@ func HandleGrpcErrorToHttp(ctx *gin.Context, err error) {
 				ErrorNotfound(ctx, s.Message())
 			case codes.Internal:
 				ErrorInternal(ctx, s.Message())
+			case codes.Unauthenticated:
+				ErrorUnauthorized(ctx, s.Message())
 			case codes.InvalidArgument:
 				Error(ctx, s.Message())
 			case codes.Unavailable:

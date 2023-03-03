@@ -10,6 +10,8 @@ import (
 	enTranslations "github.com/go-playground/validator/v10/translations/en"
 	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
 	"pay/global"
+	"reflect"
+	"strings"
 )
 
 func InitValidateTran(locale string) error {
@@ -18,7 +20,18 @@ func InitValidateTran(locale string) error {
 		zhT := zh.New() // 中文翻译器
 		enT := en.New() // 英文翻译器
 
-		//
+		// 注册一个获取json tag的自定义方法
+		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+
+		// 第一个参数是备用（fallback）的语言环境
+		// 后面的参数是应该支持的语言环境（支持多个）
+		// uni := ut.New(zhT, zhT) 也是可以的
 		uni := ut.New(enT, zhT, enT)
 		global.Trans, ok = uni.GetTranslator(locale)
 		if !ok {
