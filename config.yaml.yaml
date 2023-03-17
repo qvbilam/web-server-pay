@@ -1,0 +1,20 @@
+name: "pay"
+host: "127.0.0.1"
+port: 9502
+# 支付配置
+alipay:
+  app_id:
+  private_key:
+  ali_public_key:
+  notify_url: "http://gkbdt7.natappfree.cc/pay/alipay/notify"
+  return_url: "http://gkbdt7.natappfree.cc/ping"
+  # 是否沙箱模式
+  is_production: false
+pay-server:
+  host: "127.0.0.1"
+  port: 9800
+  name: "grpc-pay-server"
+user-server:
+  host: "127.0.0.1"
+  port: 9801
+  name: "grpc-user-server"
