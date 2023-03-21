@@ -89,6 +89,12 @@ func ErrorUnprocessableEntity(ctx *gin.Context, errors interface{}) {
 	})
 }
 
+func ErrorTooManyRequests(ctx *gin.Context, message string) {
+	ctx.JSON(http.StatusTooManyRequests, gin.H{
+		responseFieldMessage: "请求频繁,请稍后再试",
+	})
+}
+
 // ErrorInternal 服务器错误 500
 func ErrorInternal(ctx *gin.Context, message string) {
 	ErrorCustom(ctx, http.StatusInternalServerError, message)
@@ -111,6 +117,8 @@ func HandleGrpcErrorToHttp(ctx *gin.Context, err error) {
 				Error(ctx, s.Message())
 			case codes.AlreadyExists:
 				Error(ctx, s.Message())
+			case codes.ResourceExhausted:
+				ErrorTooManyRequests(ctx, s.Message())
 			default:
 				ErrorInternal(ctx, fmt.Sprintf("code: %d, message: %s", s.Code(), s.Message()))
 			}
