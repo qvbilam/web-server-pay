@@ -81,6 +81,12 @@ func ErrorNotfound(ctx *gin.Context, message string) {
 	ErrorCustom(ctx, http.StatusNotFound, message)
 }
 
+func ErrorTimeout(ctx *gin.Context) {
+	ctx.JSON(http.StatusRequestTimeout, gin.H{
+		responseFieldMessage: "请求超时",
+	})
+}
+
 // ErrorUnprocessableEntity 请求格式正确,有语义错误 422
 func ErrorUnprocessableEntity(ctx *gin.Context, errors interface{}) {
 	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -105,6 +111,8 @@ func HandleGrpcErrorToHttp(ctx *gin.Context, err error) {
 	if err != nil {
 		if s, ok := status.FromError(err); ok {
 			switch s.Code() {
+			case codes.DeadlineExceeded:
+				ErrorTimeout(ctx)
 			case codes.NotFound:
 				ErrorNotfound(ctx, s.Message())
 			case codes.Internal:
