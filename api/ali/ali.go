@@ -14,13 +14,14 @@ import (
 	"pay/resource"
 	"pay/validate"
 	"strconv"
+	"time"
 )
 
 func Web(ctx *gin.Context) {
 	uID, _ := ctx.Get("userId")
 	userID := uID.(int64)
 
-	request := validate.OrderValidate{}
+	request := validate.OrderApplyValidate{}
 	if err := ctx.ShouldBind(&request); err != nil {
 		api.HandleValidateError(ctx, err)
 		return
@@ -28,16 +29,12 @@ func Web(ctx *gin.Context) {
 
 	b := business.OrderBusiness{
 		UserID:     userID,
-		DeliveryID: request.DeliveryID,
-		GoodsType:  request.GoodsType,
-		GoodsId:    request.GoodsId,
-		Count:      request.Count,
+		OrderSn:    request.OrderSn,
 		PayType:    enum.PayTypeAlipay,
 		ClientType: enum.ClientTypeWeb,
-		Remark:     request.Remark,
 	}
 
-	order, err := b.Create()
+	order, err := b.Apply()
 	if err != nil {
 		api.HandleGrpcErrorToHttp(ctx, err)
 		return
@@ -83,14 +80,15 @@ func Notify(ctx *gin.Context) {
 
 	payResult, _ := json.Marshal(notify)
 	payAmount, _ := strconv.ParseFloat(notify.BuyerPayAmount, 64)
-	payTime, _ := strconv.Atoi(notify.GmtPayment)
+	// 日期转换时间
+	tm, _ := time.Parse("2006-01-02 15:04:05", notify.GmtPayment)
 	if _, err := global.PayServerClient.UpdateOrder(context.Background(), &proto.UpdateOrderRequest{
 		OrderSn:   notify.OutTradeNo,
 		TradeNo:   notify.TradeNo,
 		Status:    status,
 		PayAmount: float32(payAmount),
 		PayResult: string(payResult),
-		PayTime:   int64(payTime),
+		PayTime:   tm.Unix(),
 	}); err != nil {
 		api.Error(ctx, err.Error())
 		return

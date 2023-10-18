@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+const kSandboxURL = "https://openapi-sandbox.dl.alipaydev.com/gateway.do"
+
 type AliPayBusiness struct {
 	OrderSn string
 	Subject string
@@ -25,6 +27,10 @@ func (b *AliPayBusiness) Web() (string, error) {
 	if err != nil {
 		zap.S().Errorw("创建支付订单失败")
 		return "", err
+	}
+	// 替换新版沙箱环境网关
+	if !global.ServerConfig.AliPayConfig.IsProduction {
+		return kSandboxURL + "?" + url.RawQuery, nil
 	}
 	return url.String(), nil
 }

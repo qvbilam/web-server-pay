@@ -1,5 +1,11 @@
 ## 依赖包
 ```shell
+# 买家账号: tuktos1146@sandbox.com
+# 登录密码: 111111
+# 支付密码: 111111
+```
+
+```shell
 # gin
 go get -u github.com/gin-gonic/gin
 

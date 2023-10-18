@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PayClient interface {
 	CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
+	ApplyOrder(ctx context.Context, in *ApplyOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
 	UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
 }
 
@@ -36,7 +37,16 @@ func NewPayClient(cc grpc.ClientConnInterface) PayClient {
 
 func (c *payClient) CreateOrder(ctx context.Context, in *CreateOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error) {
 	out := new(OrderResponse)
-	err := c.cc.Invoke(ctx, "/userPb.v1.pay/CreateOrder", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/payPb.v1.pay/CreateOrder", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *payClient) ApplyOrder(ctx context.Context, in *ApplyOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error) {
+	out := new(OrderResponse)
+	err := c.cc.Invoke(ctx, "/payPb.v1.pay/ApplyOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +55,7 @@ func (c *payClient) CreateOrder(ctx context.Context, in *CreateOrderRequest, opt
 
 func (c *payClient) UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error) {
 	out := new(OrderResponse)
-	err := c.cc.Invoke(ctx, "/userPb.v1.pay/UpdateOrder", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/payPb.v1.pay/UpdateOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,6 +67,7 @@ func (c *payClient) UpdateOrder(ctx context.Context, in *UpdateOrderRequest, opt
 // for forward compatibility
 type PayServer interface {
 	CreateOrder(context.Context, *CreateOrderRequest) (*OrderResponse, error)
+	ApplyOrder(context.Context, *ApplyOrderRequest) (*OrderResponse, error)
 	UpdateOrder(context.Context, *UpdateOrderRequest) (*OrderResponse, error)
 	mustEmbedUnimplementedPayServer()
 }
@@ -67,6 +78,9 @@ type UnimplementedPayServer struct {
 
 func (UnimplementedPayServer) CreateOrder(context.Context, *CreateOrderRequest) (*OrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOrder not implemented")
+}
+func (UnimplementedPayServer) ApplyOrder(context.Context, *ApplyOrderRequest) (*OrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ApplyOrder not implemented")
 }
 func (UnimplementedPayServer) UpdateOrder(context.Context, *UpdateOrderRequest) (*OrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOrder not implemented")
@@ -94,10 +108,28 @@ func _Pay_CreateOrder_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/userPb.v1.pay/CreateOrder",
+		FullMethod: "/payPb.v1.pay/CreateOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PayServer).CreateOrder(ctx, req.(*CreateOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Pay_ApplyOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PayServer).ApplyOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/payPb.v1.pay/ApplyOrder",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PayServer).ApplyOrder(ctx, req.(*ApplyOrderRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,7 +144,7 @@ func _Pay_UpdateOrder_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/userPb.v1.pay/UpdateOrder",
+		FullMethod: "/payPb.v1.pay/UpdateOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PayServer).UpdateOrder(ctx, req.(*UpdateOrderRequest))
@@ -124,12 +156,16 @@ func _Pay_UpdateOrder_Handler(srv interface{}, ctx context.Context, dec func(int
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Pay_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "userPb.v1.pay",
+	ServiceName: "payPb.v1.pay",
 	HandlerType: (*PayServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "CreateOrder",
 			Handler:    _Pay_CreateOrder_Handler,
+		},
+		{
+			MethodName: "ApplyOrder",
+			Handler:    _Pay_ApplyOrder_Handler,
 		},
 		{
 			MethodName: "UpdateOrder",

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package userPb.v1;
+package payPb.v1;
 option go_package="pay/api/qvbilam/pay/v1;payV1";
 
 message CreateGoodsRequest {
@@ -13,13 +13,15 @@ message CreateGoodsRequest {
 
 message CreateOrderRequest{
   int64 userId = 1;
-  string goodsType = 2;
-  int64 goodsId = 3;
-  int64 count = 4;
-  int64 delivery_id = 5;
-  string pay_type = 6;
-  string client_type = 7;
-  string remark = 8;
+  int64 count = 2;
+  int64 delivery_id = 3;
+  string pay_type = 4;
+  string client_type = 5;
+  string remark = 6;
+  float Amount = 7;
+  string subject = 8;
+  repeated CreateGoodsRequest Goods = 9;
+  string ext = 10;
 }
 
 message UpdateOrderRequest{
@@ -32,6 +34,7 @@ message UpdateOrderRequest{
   string remark = 7;
   string payResult = 8;
   int64 payTime = 9;
+  string ext = 10;
 }
 
 message OrderResponse {
@@ -43,8 +46,9 @@ message OrderResponse {
   float amount = 6;
   string subject = 7;
   string remark = 8;
-  string payResult =9;
+  string payResult = 9;
   int64 payTime = 10;
+  string ext = 11;
 }
 
 
@@ -53,7 +57,16 @@ message PayNotifyResponse {
   string message = 2;
 }
 
+message ApplyOrderRequest {
+  string orderSn = 1;
+  string payType = 2;
+  string clientType = 3;
+  int64 userID = 4;
+}
+
+
 service pay {
-  rpc CreateOrder (CreateOrderRequest) returns (OrderResponse);
-  rpc UpdateOrder (UpdateOrderRequest) returns (OrderResponse);
+  rpc CreateOrder (CreateOrderRequest) returns (OrderResponse); // 创建订单
+  rpc ApplyOrder (ApplyOrderRequest) returns (OrderResponse); // 申请订单(支付前调用)
+  rpc UpdateOrder (UpdateOrderRequest) returns (OrderResponse); // 修改订单状态
 }
